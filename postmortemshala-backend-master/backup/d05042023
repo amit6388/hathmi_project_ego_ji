@@ -1,0 +1,274 @@
+const express = require("express");
+const cors =require('cors')
+require('./config/config');
+const Users_RegisterSchema=require('./model/users_model/Register')
+const Admin_RegisterSchema=require('./model/admin_model/Register')
+const CoursesSchema=require('./model/course_model/Course')
+const admin_upload=require('./multer/admin_multer/admin_multer') 
+const courses_upload=require('./multer/courses_multer/courses_multer')
+let PORT = process.env.PORT || 4500;
+const app = express();
+app.use(express.json())
+app.use(cors()
+)
+//******************START  Users Controller*********************************//
+
+app.post("/api/users/", async (req, resp) => {
+    try {
+        let data = new Users_RegisterSchema(req.body);
+        let result = await data.save();
+        console.log(result)
+        resp.send(result);
+
+    } catch (err) {
+        console.log(err)
+    }
+})
+
+app.post('/api/users/login', async (req, resp) => {
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+        const usermail = await Users_RegisterSchema.findOne({ email: email, password: password })
+        if (usermail) {
+            resp.status(200).json(
+                {
+                    "code": 200,
+                    "massage": "data found",
+                    "data": `${email}`,
+                    "error": false,
+                    "status": true
+                }
+            )
+        } else {
+            console.log("please fill valid details.")
+        } 
+    } catch (err) {
+        console.log(err)
+    }
+
+})  
+ 
+app.get("/api/users/", async (req, resp) => {
+    let data = await Users_RegisterSchema.find();
+
+    resp.send(data);
+})
+
+
+app.delete("api/users/:email", async (req, resp) => {
+    try {
+        console.log(req.params)
+        let data = await Users_RegisterSchema.deleteOne(req.params);
+        resp.send(data);
+    } catch (err) {
+        console.log(err)
+
+    }
+})
+
+app.put("/api/users/:email", async (req, resp) => {
+
+    try {
+        console.log(req.params)
+        let data = await Users_RegisterSchema.updateOne(
+            req.params,
+            { $set: req.body }
+
+        );
+        resp.send(data);
+    } catch (err) {
+        console.log(err)
+    }
+})
+
+
+//******************START  Admin Controller*********************************//
+ 
+app.post("/api/admin/",admin_upload.single('picture'), async (req, resp) => {
+    try {
+
+       let name=req.body.name;
+       let email=req.body.email;
+       let mobno=req.body.mobno;
+       let password=req.body.password;
+       let picture=req.file.filename;
+       
+
+        let data = new Admin_RegisterSchema(
+            {
+                name:name,
+                email:email,
+                mobno:mobno,
+                password:password,
+                picture:picture
+            }
+        );
+        let result = await data.save();
+        console.log(result)
+        resp.send(result);
+
+    } catch (err) {
+        console.log(err)
+    }
+})
+ 
+  
+app.post('/api/admin/login', async (req, resp) => {
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+        const usermail = await Users_RegisterSchema.findOne({ email: email, password: password })
+        if (usermail) {
+            resp.status(200).json(
+                {
+                    "code": 200,
+                    "massage": "data found",
+                    "data": `${email}`,
+                    "error": false,
+                    "status": true
+                }
+            )
+        } else {
+            console.log("please fill valid details.")
+        } 
+    } catch (err) {
+        console.log(err)
+    }
+
+}) 
+app.get("/api/admin/", async (req, resp) => {
+    let data = await Admin_RegisterSchema.find();
+
+    resp.send(data);
+})
+
+
+app.delete("/api/admin/:email", async (req, resp) => {
+    try {
+        console.log(req.params)
+        let data = await Admin_RegisterSchema.deleteOne(req.params);
+        resp.send(data);
+    } catch (err) {
+        console.log(err)
+
+    }
+})
+
+app.put("/api/admin/:email",admin_upload.single('picture'), async (req, resp) => {
+
+    try {
+        let name=req.body.name;
+        let email=req.body.email;
+        let mobno=req.body.mobno;
+        let password=req.body.password;
+        let picture=req.file.filename;
+
+        console.log(req.params)
+        let data = await Admin_RegisterSchema.updateOne(
+            req.params,
+            { $set:   {
+                name:name,
+                email:email,
+                mobno:mobno,
+                password:password,
+                picture:picture
+            } }
+
+        );
+        resp.send(data);
+    } catch (err) {
+        console.log(err)
+    }
+})
+ 
+//******************START Course Controller*********************************//
+app.post("/api/courses/",courses_upload.single('picture'), async (req, resp) => {
+    try {
+
+       let picture=req.file.filename;
+       let level=req.body.level;
+       let no_of_lession=req.body.no_of_lession;
+       let hours=req.body.hours;
+       let description=req.body.description;
+       let price=req.body.price;
+    
+       
+
+        let data = new CoursesSchema(
+            {
+                picture:picture,
+                level:level,
+                no_of_lession:no_of_lession,
+                hours:hours,
+                description:description,
+                price:price
+            }
+        );
+        let result = await data.save();
+        console.log(result)
+        resp.send(result);
+
+    } catch (err) {
+        console.log(err)
+    }
+})
+ 
+  
+app.get("/api/admin/", async (req, resp) => {
+    let data = await CoursesSchema.find();
+
+    resp.send(data);
+})
+
+
+app.delete("/api/courses/:_id", async (req, resp) => {
+    try {
+        console.log(req.params)
+        let data = await CoursesSchema.deleteOne(req.params);
+        resp.send(data);
+    } catch (err) {
+        console.log(err)
+
+    }
+})
+
+app.put("/api/courses/:_id",courses_upload.single('picture'), async (req, resp) => {
+
+    try {
+        let picture=req.file.filename;
+        let level=req.body.level;
+        let no_of_lession=req.body.no_of_lession;
+        let hours=req.body.hours;
+        let description=req.body.description;
+        let price=req.body.price;
+
+        console.log(req.params)
+        let data = await CoursesSchema.updateOne(
+            req.params,
+            { $set:    {
+                picture:picture,
+                level:level,
+                no_of_lession:no_of_lession,
+                hours:hours,
+                description:description,
+                price:price
+            } }
+
+        );
+        resp.send(data);
+    } catch (err) {
+        console.log(err)
+    }
+})
+
+
+
+
+
+
+app.listen(PORT, () => {
+    console.log("server is running at   :" + PORT)
+})
+
+//6390899942 mahagram////
